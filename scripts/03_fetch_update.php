@@ -68,6 +68,9 @@ foreach ($nodes as $node) {
             if (false !== $nodePos) {
                 $nodePosEnd = strpos($nodeRaw, '<div style="clear:both;">', $nodePos);
                 $body = substr($nodeRaw, $nodePos, $nodePosEnd - $nodePos);
+                $body = str_replace(array('</p>', '&nbsp;'), array("\n", ''), $body);
+                $json['content'] = trim(strip_tags($body));
+                $message = $json['title'] . "\n\n" . $json['content'] . "\n\n" . $json['url'];
                 if ($isNew && !empty($body)) {
                     $imgPool = [];
                     $media = [];
@@ -85,7 +88,7 @@ foreach ($nodes as $node) {
                             file_put_contents($imgFile, file_get_contents($imgUrl));
                             try {
                                 $response = $fb->post('/' . $config['page_id'] . '/photos', [
-                                    'message' => $json['title'],
+                                    'message' => $message,
                                     'source' => $fb->fileToUpload($imgFile),
                                     'published' => false,
                                 ], $config['token']);
@@ -100,14 +103,13 @@ foreach ($nodes as $node) {
                         }
                     }
                 }
-                $body = str_replace(array('</p>', '&nbsp;'), array("\n", ''), $body);
-                $json['content'] = trim(strip_tags($body));
+                
             } else {
                 $json['content'] = '';
             }
             if (!empty($media)) {
                 $linkData = [
-                    'message' => $json['title'] . "\n\n" . $json['content'] . "\n\n" . $json['url'],
+                    'message' => $message,
                     'attached_media' => $media,
                 ];
 
